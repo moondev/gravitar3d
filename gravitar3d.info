@@ -1,0 +1,8 @@
+name = Gravitar3d
+description = Displays a user's gravitar in 3d via a local task
+core = 7.x
+#package = Views
+#dependencies[] = views
+#dependencies[] = panels
+#files[] = tests/example.test
+#configure = admin/config/content/example

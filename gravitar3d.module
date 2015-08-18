@@ -1,0 +1,99 @@
+<?php
+
+function gravitar3d_menu() {
+  return array(
+    'user/%user/gravitar3d' => array(
+      'title' => 'Gravitar3d',
+      'page callback' => 'gravitar3d_page',
+      'page arguments' => array(1),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 1000,
+    ),
+    'gravitar/%' => array(
+      'page callback' => 'gravitar3d_proxy',
+      'page arguments' => array(1),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+    )
+  );
+}
+
+//proxy for gravitars to get around js same origin policy
+function gravitar3d_proxy($hash){
+  header('Content-type: image/jpeg');
+  die(file_get_contents("http://www.gravatar.com/avatar/" . $hash . '?s=500'));
+}
+
+function _gravitar3d_make_url($email){
+  $email = trim($email);
+  $email = strtolower($email);
+  $email_hash = md5($email);
+  return "/gravitar/" . $email_hash . '?s=500';
+}
+
+function gravitar3d_page($user){
+  drupal_set_title(t('3D Gravitar for @mail', array('@mail' => check_plain($user->mail))));
+  global $base_url;
+  
+  $path = '/' . drupal_get_path('module','gravitar3d') . '/assets';
+
+  drupal_add_js('http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js', array('type' => 'file', 'scope' => 'footer'));
+  drupal_add_js($path . '/js/Three.js', array('type' => 'file', 'scope' => 'footer'));
+  drupal_add_js($path . '/js/Detector.js', array('type' => 'file', 'scope' => 'footer'));
+  drupal_add_js($path . '/js/RequestAnimationFrame.js', array('type' => 'file', 'scope' => 'footer'));
+  drupal_add_js($path . '/js/Stats.js', array('type' => 'file', 'scope' => 'footer'));
+  drupal_add_js($path . '/js/jquery.mousewheel.min.js', array('type' => 'file', 'scope' => 'footer'));
+  drupal_add_js($path . '/js/DAT.GUI.min.js', array('type' => 'file', 'scope' => 'footer'));
+  drupal_add_js($path . '/js/ruttetraizer.js', array('type' => 'file', 'scope' => 'footer'));
+  
+  return(
+    array(
+      //'form' => drupal_get_form('gravitar3d_form'),
+      'gravitar3d' => array(
+        '#type' => 'markup',
+        '#markup' => theme('gravitar3d_page',array(
+          'gravitar' => _gravitar3d_make_url($user->mail))
+        )
+      )
+    )
+  );
+}
+
+function gravitar3d_form($form_state) {
+  $form['stage_scale'] = array(
+    '#title' => t('Stage Scale'),
+    '#type' => 'select',
+    '#options' => array(2,4,6,8,10),
+  );
+  
+  $form['stage_scale'] = array(
+    '#title' => t('Stage Scale'),
+    '#type' => 'select',
+    '#options' => array(2,4,6,8,10),
+  );
+  
+  $form['line_separation'] = array(
+    '#title' => t('Line Separation'),
+    '#type' => 'select',
+    '#options' => array(2,4,6,8,10,12,14,16),
+  );
+  
+  $form['max_depth'] = array(
+    '#title' => t('Max Depth'),
+    '#type' => 'select',
+    '#options' => array(100,200,300),
+  );
+
+  return $form;
+}
+
+function gravitar3d_theme($existing, $type, $theme, $path) {
+  return array(
+    'gravitar3d_page' => array(
+      'template' => 'gravitar3d-page',
+      'variables' => array('dataA' => '', 'dataB' => '', 'dataC' => ''),
+      'path' => drupal_get_path('module', 'gravitar3d')
+    )
+  );
+}
